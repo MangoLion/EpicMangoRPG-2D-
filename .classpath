@@ -7,5 +7,6 @@
 	<classpathentry kind="lib" path="libs/trident.jar"/>
 	<classpathentry kind="lib" path="libs/commons-io-2.4.jar"/>
 	<classpathentry kind="lib" path="libs/ini4j-0.5.2-SNAPSHOT.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/MangoAni-desktop"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

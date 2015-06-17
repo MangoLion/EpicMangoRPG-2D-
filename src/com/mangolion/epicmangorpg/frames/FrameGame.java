@@ -1,10 +1,8 @@
 package com.mangolion.epicmangorpg.frames;
 
 import java.awt.BorderLayout;
-import java.awt.Button;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -14,11 +12,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
@@ -29,25 +24,26 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
 import javax.swing.JList;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+import com.badlogic.gdx.backends.lwjgl.LwjglAWTCanvas;
+import com.mangolion.ani.AniMain;
+import com.mangolion.ani.desktop.TransSplit;
+import com.mangolion.ani.desktop.TransparentPane;
 import com.mangolion.epicmangorpg.characters.Character;
 import com.mangolion.epicmangorpg.characters.CharacterPlayer;
 import com.mangolion.epicmangorpg.commands.CmdUse;
@@ -188,16 +184,17 @@ public class FrameGame extends JFrame {
 	public JDesktopPane desktopPane = new JDesktopPane();
 //	JLayeredPane layeredPane = new JLayeredPane();
 	JPanel contentPanel  = new JPanel(new BorderLayout());
-	JSplitPane splitMain;
+	TransparentPane splitMain;
+	JPanel gamePanel;
 	public int maxEnemies = 1, mouseX, mouseY;
 	public JButton btnNextTick;
-	
+	Timer timer2;
 	/**
 	 * Create the frame.
 	 */
 	public FrameGame() {
 		setExtendedState(MAXIMIZED_BOTH);
-		setContentPane(contentPanel);
+		//setContentPane(contentPanel);
 		instance =this;
 		setTitle("Epic Mango Adventure");
 		JMenuBar menuBar = new JMenuBar();
@@ -207,21 +204,57 @@ public class FrameGame extends JFrame {
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		//setBounds(100, 100, 763, 434);
 		setSize(1360, 780);
-		splitMain = new JSplitPane();
-		splitMain.setResizeWeight(0.05);
+		splitMain = new TransparentPane(0, Color.white, new BorderLayout());
+		//splitMain.(Color.BLACK);
+		//splitMain.setResizeWeight(0.05);
 		//getContentPane().add(splitPane, BorderLayout.CENTER);
+		contentPanel.setBackground(Color.black);
 		setContentPane(contentPanel);
 		contentPanel.add(desktopPane);
-		desktopPane.add(splitMain, JLayeredPane.DEFAULT_LAYER);
 		
+		
+		SwingUtilities.invokeLater(new Runnable() {
+			
+			@Override
+			public void run() {
+        		gamePanel = new JPanel();
+        		//gamePanel.setBackground(Color.BLACK);
+        		gamePanel.setLayout(new BorderLayout());
+				LwjglAWTCanvas canvas = new LwjglAWTCanvas(new AniMain());
+	        	gamePanel.add(canvas.getCanvas(), BorderLayout.CENTER);
+        	    gamePanel.add(new JButton("PRess Me"), BorderLayout.NORTH);
+        	    gamePanel.setBorder(BorderFactory.createLineBorder(Color.white));
+			}
+		});
+		
+		timer2 = new Timer(2000, new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+
+        	    desktopPane.add(gamePanel,1);
+				//gamePanel.add(new JButton("PRess Me"));
+	        	gamePanel.revalidate();
+				desktopPane.revalidate();
+				timer2.stop();
+			}
+		});
+		
+		timer2.start();
+		
+		desktopPane.add(splitMain,0);
+		desktopPane.setBackground(Color.black);
+		//desktopPane.add(splitMain);
+
 		/*layeredPane.add(desktopPane);
 		layeredPane.setBorder(BorderFactory.createTitledBorder("Blub"));
 		layeredPane.setSize(100, 100);		*/
 		
-		JSplitPane splitPane_1 = new JSplitPane();
+		/*TransSplit splitPane_1 = new TransSplit();
 		splitPane_1.setResizeWeight(0.2);
-		splitPane_1.setOrientation(JSplitPane.VERTICAL_SPLIT);
-		splitMain.setLeftComponent(splitPane_1);
+		splitPane_1.setOrientation(TransSplit.VERTICAL_SPLIT);
+		splitMain.add(splitPane_1);*/
 		
 		
 		tabInfo = new JTabbedPane();
@@ -247,7 +280,7 @@ public class FrameGame extends JFrame {
 		
 		JScrollPane scrollEvent = new JScrollPane();
 		tabInfo.addTab("Event", scrollEvent);
-		splitPane_1.setLeftComponent(tabInfo);
+		//splitPane_1.setLeftComponent(tabInfo);
 		 listEvents = new JList(modelEvent);
 		 listEvents.setFont(new Font("Comic Sans MS", Font.PLAIN, 11));
 		scrollEvent.setViewportView(listEvents);
@@ -425,7 +458,7 @@ public class FrameGame extends JFrame {
 
 
 		tabLower.addTab("Environment", panelTerrain);
-		splitPane_1.setRightComponent(tabLower);
+		splitMain.add(tabLower, BorderLayout.WEST);
 		
 		
 		
@@ -596,17 +629,16 @@ public class FrameGame extends JFrame {
 			}
 		});
 		
-		JSplitPane splitPane_2 = new JSplitPane();
-		splitPane_2.setResizeWeight(0.9);
-		splitPane_2.setOrientation(JSplitPane.VERTICAL_SPLIT);
-		splitMain.setRightComponent(splitPane_2);
+		TransparentPane splitPane_2 = new TransparentPane(0, Color.white, new BorderLayout());
+		splitPane_2.setOpaque(false);
+		splitMain.add(splitPane_2, BorderLayout.EAST);
 		
-		JSplitPane splitPane_3 = new JSplitPane();
-		splitPane_3.setResizeWeight(0.5);
-		splitPane_2.setRightComponent(splitPane_3);
+		//TransSplit splitPane_3 = new TransSplit();
+//		splitPane_3.setResizeWeight(0.5);
+//		splitPane_2.setRightComponent(splitPane_3);
 		
 		JScrollPane scrollPane_2 = new JScrollPane();
-		splitPane_3.setLeftComponent(scrollPane_2);
+//		splitPane_3.setLeftComponent(scrollPane_2);
 		
 		 listAllies = new JList(modelAllies);
 		 listAllies.setFont(new Font("Comic Sans MS", Font.PLAIN, 14));
@@ -650,7 +682,7 @@ public class FrameGame extends JFrame {
 		scrollPane_2.setColumnHeaderView(lblAllies);
 		
 		JScrollPane scrollPane_3 = new JScrollPane();
-		splitPane_3.setRightComponent(scrollPane_3);
+//		splitPane_3.setRightComponent(scrollPane_3);
 		
 		listEnemies = new JList<String>(modelEnemies);
 		listEnemies.setFont(new Font("Comic Sans MS", Font.PLAIN, 14));
@@ -683,12 +715,13 @@ public class FrameGame extends JFrame {
 		scrollPane_3.setColumnHeaderView(lblEnemies);
 		
 		JPanel panelNarration = new JPanel();
-		splitPane_2.setLeftComponent(panelNarration);
+		splitPane_2.add(new TransparentPane(0, Color.WHITE, new BorderLayout()), BorderLayout.NORTH);
+		splitPane_2.add(panelNarration, BorderLayout.SOUTH);
 		panelNarration.setLayout(new BorderLayout(0, 0));
 
 		
 		 panelAction = new JPanel(new BorderLayout());
-		panelNarration.add(panelAction, BorderLayout.SOUTH);
+		panelNarration.add(panelAction, BorderLayout.NORTH);
 		
 		btnNextTick = new JButton("Go");
 		btnNextTick.addActionListener(new ActionListener() {
@@ -738,7 +771,7 @@ public class FrameGame extends JFrame {
 		lblTimePassed = new JLabel("Time Passed:");
 		lblTimePassed.setFont(new Font("Comic Sans MS", Font.PLAIN, 12));
 		lblTimePassed.setHorizontalAlignment(SwingConstants.CENTER);
-		panelAction.add(lblTimePassed, BorderLayout.NORTH);
+		panelAction.add(lblTimePassed, BorderLayout.SOUTH);
 		
 		 scrollMango = new JScrollPane();
 		//splitPane_4.setLeftComponent(scrollPane_1);
@@ -934,6 +967,7 @@ public class FrameGame extends JFrame {
 	public void refreshSize(){
 		//desktopPane.setSize(layeredPane.getSize());
 		splitMain.setSize(desktopPane.getSize());
+		gamePanel.setSize(desktopPane.getSize());
 	}
 	
 	public void addFrame(JInternalFrame frame){
